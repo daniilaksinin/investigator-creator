@@ -545,9 +545,6 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
           <span>Будова: <b>{build.build}</b></span>
           <span>Бонусні пошкодження: <b>{build.damageBonus}</b></span>
           <span>Достаток: <b>{creditRating(draft.occupationId)}%</b></span>
-          <span>У кишені: <b>{wealth.cash}</b></span>
-          <span>Заощадження: <b>{wealth.savings}</b></span>
-          <span>Активи: <b>{wealth.assets}</b></span>
         </div>
       </div>
 
@@ -608,6 +605,15 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
               {gearIcon(g)} {g}
             </span>
           ))}
+        </div>
+      </div>
+
+      <div className="investigator-creator__result-block">
+        <h4>Багатство</h4>
+        <div className="investigator-creator__result-chars">
+          <span>У кишені: <b>{wealth.cash}</b></span>
+          <span>Заощадження: <b>{wealth.savings}</b></span>
+          <span>Активи: <b>{wealth.assets}</b></span>
         </div>
       </div>
 
