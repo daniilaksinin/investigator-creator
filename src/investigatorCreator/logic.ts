@@ -1,4 +1,4 @@
-import type { CharKey, Characteristics, InvestigatorDraft, Occupation, WeaponDef } from "./types";
+import type { CharKey, Characteristics, InvestigatorDraft, Occupation, SuccessLevels, WeaponDef } from "./types";
 import { OCCUPATIONS, baseSkillValue } from "./data";
 
 export const CHAR_ORDER: CharKey[] = ["СИЛ", "СТА", "СПР", "РОЗ", "ВОЛ", "ПРИ", "ІНТ", "ОСВ"];
@@ -42,18 +42,22 @@ export function remainingCharPoints(chars: Characteristics): number {
   return CHAR_POOL_TOTAL - usedCharPoints(chars);
 }
 
-function rollDie(sides: number): number {
-  return 1 + Math.floor(Math.random() * sides);
+/**
+ * Талан is derived from Волю (the classic 7e Luck-equals-POW rule) with a bonus
+ * for occupations whose secondary skill-point stat is Воля, reflecting an
+ * occupation-driven force of will/fortune rather than a pure dice roll.
+ */
+export function computeLuck(chars: Characteristics, occ: Occupation): number {
+  const bonus = occ.secondaryStat === "ВОЛ" ? 10 : 0;
+  return Math.min(99, chars.ВОЛ + bonus);
 }
 
-function rollSum(count: number, sides: number): number {
-  let total = 0;
-  for (let i = 0; i < count; i++) total += rollDie(sides);
-  return total;
-}
-
-export function rollLuck(): number {
-  return rollSum(3, 6) * 5;
+export function successLevels(value: number): SuccessLevels {
+  return {
+    regular: value,
+    hard: Math.floor(value / 2),
+    extreme: Math.floor(value / 5),
+  };
 }
 
 export function computeHP(chars: Characteristics): number {
@@ -150,7 +154,6 @@ export function createEmptyDraft(): InvestigatorDraft {
     occupationId: OCCUPATIONS[0].id,
     customOccupation: "",
     characteristics: defaultCharacteristics(),
-    luck: rollLuck(),
     occupationSkillPoints: {},
     personalSkillPoints: {},
     extraGear: [],
@@ -169,6 +172,7 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
   const build = computeBuild(chars);
   const weapons = weaponsFor(draft);
   const gender = draft.gender === "male" ? "Чоловіча" : "Жіноча";
+  const luck = computeLuck(chars, occ);
 
   const allSkillNames = new Set<string>([
     ...Object.keys(draft.occupationSkillPoints).filter((k) => draft.occupationSkillPoints[k] > 0),
@@ -176,7 +180,11 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
   ]);
   const skillLines = Array.from(allSkillNames)
     .sort((a, b) => a.localeCompare(b))
-    .map((name) => `  ${name}: ${skillFinalValue(name, draft.occupationSkillPoints, draft.personalSkillPoints)}%`);
+    .map((name) => {
+      const value = skillFinalValue(name, draft.occupationSkillPoints, draft.personalSkillPoints);
+      const lvl = successLevels(value);
+      return `  ${name}: ${lvl.regular}% (Складно: ${lvl.hard}%, Екстремально: ${lvl.extreme}%)`;
+    });
 
   const lines = [
     `ЛИСТ ДОСЛІДНИКА — ${draft.firstName} ${draft.lastName}`,
@@ -191,13 +199,16 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
     `  Рід занять: ${occupationDisplayName(draft)}`,
     "",
     "ХАРАКТЕРИСТИКИ",
-    ...CHAR_ORDER.map((k) => `  ${k} (${CHAR_FULL_NAMES[k]}): ${chars[k]}`),
+    ...CHAR_ORDER.map((k) => {
+      const lvl = successLevels(chars[k]);
+      return `  ${k} (${CHAR_FULL_NAMES[k]}): ${lvl.regular} (Складно: ${lvl.hard}, Екстремально: ${lvl.extreme})`;
+    }),
     "",
     "ПОХІДНІ ПОКАЗНИКИ",
     `  Очки здоров'я: ${computeHP(chars)}`,
     `  Глузд (Початковий/Поточний): ${computeStartingSanity(chars)}`,
     `  Макс. глузд: ${MAX_SANITY_AT_CREATION}`,
-    `  Талан: ${draft.luck}`,
+    `  Талан: ${luck}`,
     `  Ухиляння: ${computeDodge(chars)}%`,
     `  Переміщення: ${computeMove(chars)}`,
     `  Будова: ${build.build}`,

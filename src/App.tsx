@@ -7,7 +7,7 @@ function App() {
       <header className="app__header">
         <h1 className="app__title">Створення дослідника</h1>
         <p className="app__subtitle">
-          Поклик Ктулху, 1920-ті — заповніть кроки нижче і завантажте готовий лист персонажа.
+          Поклик Ктулху — заповніть кроки нижче і завантажте готовий лист персонажа.
         </p>
       </header>
       <main className="app__main">

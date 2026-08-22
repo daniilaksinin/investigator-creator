@@ -9,6 +9,9 @@ import {
   HOMEPLACES,
   GENERAL_EQUIPMENT,
   SKILL_LIST,
+  skillIcon,
+  skillDescription,
+  gearIcon,
 } from "./data";
 import {
   CHAR_ORDER,
@@ -24,6 +27,7 @@ import {
   personalSkillPointPool,
   sumAllocated,
   skillFinalValue,
+  successLevels,
   computeHP,
   computeDodge,
   computeMove,
@@ -31,14 +35,15 @@ import {
   computeStartingSanity,
   MAX_SANITY_AT_CREATION,
   creditRating,
+  computeLuck,
   weaponsFor,
   occupationDisplayName,
   buildSummaryText,
-  rollLuck,
 } from "./logic";
 import "./InvestigatorCreator.css";
 
 const SKILL_STEP = 5;
+const SPOT_HIDDEN = "Пошук прихованого";
 
 const STEPS = [
   "Стать",
@@ -61,6 +66,10 @@ function InvestigatorCreator() {
   const [draft, setDraft] = useState<InvestigatorDraft>(() => createEmptyDraft());
 
   const occ = useMemo(() => getOccupation(draft.occupationId), [draft.occupationId]);
+  const occSkills = useMemo(
+    () => (occ.skills.includes(SPOT_HIDDEN) ? occ.skills : [...occ.skills, SPOT_HIDDEN]),
+    [occ]
+  );
   const charsUsed = usedCharPoints(draft.characteristics);
   const charsRemaining = remainingCharPoints(draft.characteristics);
   const occPool = occupationSkillPointPool(draft.characteristics, occ);
@@ -79,6 +88,16 @@ function InvestigatorCreator() {
   function randomizeName() {
     const pool = draft.gender === "male" ? MALE_FIRST_NAMES : FEMALE_FIRST_NAMES;
     update({ firstName: randomOf(pool), lastName: randomOf(LAST_NAMES) });
+  }
+
+  function randomizeHomeplace() {
+    const h = randomOf(HOMEPLACES);
+    update({ homeplace: `${h.city}, ${h.country}` });
+  }
+
+  function setAge(value: number) {
+    if (Number.isNaN(value)) return;
+    update({ age: Math.min(90, Math.max(15, Math.round(value))) });
   }
 
   function adjustChar(key: (typeof CHAR_ORDER)[number], delta: number) {
@@ -235,15 +254,25 @@ function InvestigatorCreator() {
 
             {step === 2 && (
               <div className="investigator-creator__panel">
-                <h3 className="investigator-creator__step-title">Вік: {draft.age}</h3>
-                <input
-                  type="range"
-                  min={15}
-                  max={90}
-                  value={draft.age}
-                  onChange={(e) => update({ age: Number(e.target.value) })}
-                  className="investigator-creator__slider"
-                />
+                <h3 className="investigator-creator__step-title">Вік</h3>
+                <div className="investigator-creator__age-row">
+                  <input
+                    type="range"
+                    min={15}
+                    max={90}
+                    value={draft.age}
+                    onChange={(e) => setAge(Number(e.target.value))}
+                    className="investigator-creator__slider"
+                  />
+                  <input
+                    type="number"
+                    min={15}
+                    max={90}
+                    value={draft.age}
+                    onChange={(e) => setAge(Number(e.target.value))}
+                    className="investigator-creator__age-input"
+                  />
+                </div>
               </div>
             )}
 
@@ -253,15 +282,11 @@ function InvestigatorCreator() {
                 <div className="investigator-creator__name-row">
                   <input
                     className="investigator-creator__input"
-                    placeholder="Наприклад, Аркхем"
+                    placeholder="Наприклад, Київ, Україна"
                     value={draft.homeplace}
                     onChange={(e) => update({ homeplace: e.target.value })}
                   />
-                  <button
-                    type="button"
-                    className="investigator-creator__random-btn"
-                    onClick={() => update({ homeplace: randomOf(HOMEPLACES) })}
-                  >
+                  <button type="button" className="investigator-creator__random-btn" onClick={randomizeHomeplace}>
                     Згенерувати
                   </button>
                 </div>
@@ -279,9 +304,17 @@ function InvestigatorCreator() {
                       className={`investigator-creator__occupation-btn ${draft.occupationId === o.id ? "investigator-creator__occupation-btn--active" : ""}`}
                       onClick={() => update({ occupationId: o.id })}
                     >
+                      <span className="investigator-creator__occupation-icon">{o.icon}</span>
                       {o.name}
                     </button>
                   ))}
+                </div>
+                <div className="investigator-creator__occupation-description">
+                  <span className="investigator-creator__occupation-icon investigator-creator__occupation-icon--lg">{occ.icon}</span>
+                  <div>
+                    <strong>{occ.name}</strong>
+                    <p>{occ.description}</p>
+                  </div>
                 </div>
                 {occ.id === "other" && (
                   <input
@@ -334,7 +367,7 @@ function InvestigatorCreator() {
                   </span>
                 </div>
                 <div className="investigator-creator__skill-list">
-                  {occ.skills.map((name) => (
+                  {occSkills.map((name) => (
                     <SkillRow
                       key={name}
                       name={name}
@@ -375,7 +408,9 @@ function InvestigatorCreator() {
                 <p className="investigator-creator__hint">Автоматично від роду занять:</p>
                 <ul className="investigator-creator__fixed-gear">
                   {occ.startingGear.map((g) => (
-                    <li key={g}>{g}</li>
+                    <li key={g}>
+                      <span className="investigator-creator__gear-icon">{gearIcon(g)}</span> {g}
+                    </li>
                   ))}
                 </ul>
                 <p className="investigator-creator__hint">
@@ -393,7 +428,7 @@ function InvestigatorCreator() {
                         className={`investigator-creator__gear-chip ${checked ? "investigator-creator__gear-chip--active" : ""}`}
                         onClick={() => toggleGear(item)}
                       >
-                        {item}
+                        <span className="investigator-creator__gear-icon">{gearIcon(item)}</span> {item}
                       </button>
                     );
                   })}
@@ -401,7 +436,7 @@ function InvestigatorCreator() {
               </div>
             )}
 
-            {step === 8 && <ResultPanel draft={draft} onDownload={handleDownload} onRerollLuck={() => update({ luck: rollLuck() })} />}
+            {step === 8 && <ResultPanel draft={draft} onDownload={handleDownload} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -434,8 +469,10 @@ interface SkillRowProps {
 
 function SkillRow({ name, value, onInc, onDec, occupationPoints, personalPoints }: SkillRowProps) {
   const final = skillFinalValue(name, occupationPoints, personalPoints);
+  const desc = skillDescription(name);
   return (
-    <div className="investigator-creator__skill-row">
+    <div className="investigator-creator__skill-row" title={desc || undefined}>
+      <span className="investigator-creator__skill-icon">{skillIcon(name)}</span>
       <span className="investigator-creator__skill-name">{name}</span>
       <span className="investigator-creator__skill-final">{final}%</span>
       <div className="investigator-creator__stepper investigator-creator__stepper--small">
@@ -454,15 +491,15 @@ function SkillRow({ name, value, onInc, onDec, occupationPoints, personalPoints 
 interface ResultPanelProps {
   draft: InvestigatorDraft;
   onDownload: () => void;
-  onRerollLuck: () => void;
 }
 
-function ResultPanel({ draft, onDownload, onRerollLuck }: ResultPanelProps) {
+function ResultPanel({ draft, onDownload }: ResultPanelProps) {
   const chars = draft.characteristics;
   const occ = getOccupation(draft.occupationId);
   const build = computeBuild(chars);
   const weapons = weaponsFor(draft);
   const genderLabel = draft.gender === "male" ? "Чоловіча" : "Жіноча";
+  const luck = computeLuck(chars, occ);
 
   const allocatedSkills = Array.from(
     new Set([
@@ -477,75 +514,82 @@ function ResultPanel({ draft, onDownload, onRerollLuck }: ResultPanelProps) {
         {draft.firstName} {draft.lastName}
       </h3>
       <p className="investigator-creator__result-subtitle">
-        {genderLabel} · {draft.age} років · {occupationDisplayName(draft)} · {draft.homeplace}
+        {genderLabel} · {draft.age} років · {occ.icon} {occupationDisplayName(draft)} · {draft.homeplace}
       </p>
 
-      <div className="investigator-creator__result-grid">
-        <div className="investigator-creator__result-block">
-          <h4>Характеристики</h4>
-          <div className="investigator-creator__result-chars">
-            {CHAR_ORDER.map((k) => (
-              <span key={k}>
-                {k}: <b>{chars[k]}</b>
-              </span>
-            ))}
-          </div>
+      <div className="investigator-creator__result-block">
+        <h4>Похідні показники</h4>
+        <div className="investigator-creator__result-chars">
+          <span>ОЗ: <b>{computeHP(chars)}</b></span>
+          <span>
+            Глузд: <b>{computeStartingSanity(chars)}</b> / Макс {MAX_SANITY_AT_CREATION}
+          </span>
+          <span>Талан: <b>{luck}</b></span>
+          <span>Ухиляння: <b>{computeDodge(chars)}%</b></span>
+          <span>Переміщення: <b>{computeMove(chars)}</b></span>
+          <span>Будова: <b>{build.build}</b></span>
+          <span>Бонусні пошкодження: <b>{build.damageBonus}</b></span>
+          <span>Достаток: <b>{creditRating(draft.occupationId)}%</b></span>
         </div>
+      </div>
 
-        <div className="investigator-creator__result-block">
-          <h4>Похідні показники</h4>
-          <div className="investigator-creator__result-chars">
-            <span>ОЗ: <b>{computeHP(chars)}</b></span>
-            <span>
-              Глузд: <b>{computeStartingSanity(chars)}</b> / Макс {MAX_SANITY_AT_CREATION}
-            </span>
-            <span>
-              Талан: <b>{draft.luck}</b>{" "}
-              <button type="button" className="investigator-creator__reroll-btn" onClick={onRerollLuck} title="Перекинути Талан">
-                ⟳
-              </button>
-            </span>
-            <span>Ухиляння: <b>{computeDodge(chars)}%</b></span>
-            <span>Переміщення: <b>{computeMove(chars)}</b></span>
-            <span>Будова: <b>{build.build}</b></span>
-            <span>Бонусні пошкодження: <b>{build.damageBonus}</b></span>
-            <span>Достаток: <b>{creditRating(draft.occupationId)}%</b></span>
-          </div>
-        </div>
-
-        <div className="investigator-creator__result-block">
-          <h4>Уміння</h4>
-          {allocatedSkills.length === 0 ? (
-            <p className="investigator-creator__hint">Не розподілено</p>
-          ) : (
-            <div className="investigator-creator__result-chars">
-              {allocatedSkills.map((name) => (
-                <span key={name}>
-                  {name}: <b>{skillFinalValue(name, draft.occupationSkillPoints, draft.personalSkillPoints)}%</b>
+      <div className="investigator-creator__result-block">
+        <h4>Характеристики та уміння</h4>
+        <div className="investigator-creator__stat-table">
+          {CHAR_ORDER.map((k) => {
+            const lvl = successLevels(chars[k]);
+            return (
+              <div key={k} className="investigator-creator__stat-row">
+                <span className="investigator-creator__stat-icon">📊</span>
+                <span className="investigator-creator__stat-name">
+                  {k} <span className="investigator-creator__char-fullname">({CHAR_FULL_NAMES[k]})</span>
                 </span>
-              ))}
-            </div>
-          )}
+                <span className="investigator-creator__stat-values">
+                  <b>{lvl.regular}</b>
+                  <span>{lvl.hard} / {lvl.extreme}</span>
+                </span>
+              </div>
+            );
+          })}
+          {allocatedSkills.map((name) => {
+            const value = skillFinalValue(name, draft.occupationSkillPoints, draft.personalSkillPoints);
+            const lvl = successLevels(value);
+            return (
+              <div key={name} className="investigator-creator__stat-row">
+                <span className="investigator-creator__stat-icon">{skillIcon(name)}</span>
+                <span className="investigator-creator__stat-name">{name}</span>
+                <span className="investigator-creator__stat-values">
+                  <b>{lvl.regular}%</b>
+                  <span>{lvl.hard}% / {lvl.extreme}%</span>
+                </span>
+              </div>
+            );
+          })}
         </div>
+        <p className="investigator-creator__hint investigator-creator__hint--spaced">
+          Перше число — звичайний успіх, друге — складний / екстремальний.
+        </p>
+      </div>
 
-        <div className="investigator-creator__result-block">
-          <h4>Бій</h4>
-          <div className="investigator-creator__result-chars">
-            {weapons.map((w) => (
-              <span key={w.name}>
-                {w.name}: <b>{w.damage}</b>
-              </span>
-            ))}
-          </div>
+      <div className="investigator-creator__result-block">
+        <h4>Бій</h4>
+        <div className="investigator-creator__result-chars">
+          {weapons.map((w) => (
+            <span key={w.name}>
+              {w.name}: <b>{w.damage}</b>
+            </span>
+          ))}
         </div>
+      </div>
 
-        <div className="investigator-creator__result-block investigator-creator__result-block--wide">
-          <h4>Спорядження і майно</h4>
-          <div className="investigator-creator__result-chars">
-            {[...occ.startingGear, ...draft.extraGear].map((g, i) => (
-              <span key={`${g}-${i}`}>{g}</span>
-            ))}
-          </div>
+      <div className="investigator-creator__result-block">
+        <h4>Спорядження і майно</h4>
+        <div className="investigator-creator__result-chars">
+          {[...occ.startingGear, ...draft.extraGear].map((g, i) => (
+            <span key={`${g}-${i}`}>
+              {gearIcon(g)} {g}
+            </span>
+          ))}
         </div>
       </div>
 

@@ -131,13 +131,43 @@
   accent-color: var(--color-accent);
 }
 
+.investigator-creator__age-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.investigator-creator__age-row .investigator-creator__slider {
+  flex: 1;
+}
+
+.investigator-creator__age-input {
+  width: 70px;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.investigator-creator__age-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
 .investigator-creator__occupation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 0.5rem;
 }
 
 .investigator-creator__occupation-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.55rem 0.7rem;
   border-radius: 8px;
   border: 1px solid var(--color-border-strong);
@@ -148,6 +178,39 @@
   text-align: left;
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.investigator-creator__occupation-icon {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.investigator-creator__occupation-icon--lg {
+  font-size: 1.8rem;
+}
+
+.investigator-creator__occupation-description {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.investigator-creator__occupation-description strong {
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.investigator-creator__occupation-description p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
 }
 
 .investigator-creator__occupation-btn:hover {
@@ -290,6 +353,12 @@
   background: var(--color-surface);
 }
 
+.investigator-creator__skill-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .investigator-creator__skill-name {
   flex: 1;
   font-family: var(--font-body);
@@ -318,6 +387,14 @@
   color: var(--color-text-secondary);
   font-family: var(--font-body);
   font-size: 0.88rem;
+}
+
+.investigator-creator__fixed-gear li {
+  margin-bottom: 0.15rem;
+}
+
+.investigator-creator__gear-icon {
+  display: inline-block;
 }
 
 .investigator-creator__gear-grid {
@@ -410,21 +487,11 @@
   font-size: 0.88rem;
 }
 
-.investigator-creator__result-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
 .investigator-creator__result-block {
   padding: 0.9rem 1rem;
   border-radius: 10px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-}
-
-.investigator-creator__result-block--wide {
-  grid-column: 1 / -1;
 }
 
 .investigator-creator__result-block h4 {
@@ -447,11 +514,56 @@
   color: var(--color-text-primary);
 }
 
-.investigator-creator__reroll-btn {
-  border: none;
-  background: none;
-  color: var(--color-accent-hover);
-  cursor: pointer;
+.investigator-creator__hint--spaced {
+  margin-top: 0.5rem;
+}
+
+.investigator-creator__stat-table {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.4rem;
+}
+
+@media (min-width: 640px) {
+  .investigator-creator__stat-table {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.investigator-creator__stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-body);
+}
+
+.investigator-creator__stat-icon {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.investigator-creator__stat-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.investigator-creator__stat-values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.05rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.investigator-creator__stat-values b {
+  color: var(--color-gold-hover);
   font-size: 0.9rem;
 }
 
