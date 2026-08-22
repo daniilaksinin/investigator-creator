@@ -124,6 +124,25 @@ export function creditRating(occupationId: string): number {
   return CREDIT_RATING_TIERS[occupationId] ?? 20;
 }
 
+export interface Wealth {
+  cash: number;
+  savings: number;
+  assets: number;
+}
+
+/**
+ * Simplified wealth model (own scale, not tied to any real-world currency/era):
+ * scales linearly off Достаток so richer occupations feel richer without a
+ * historical-dollar lookup table.
+ */
+export function computeWealth(cr: number): Wealth {
+  return {
+    cash: cr * 2,
+    savings: cr * 20,
+    assets: cr * 50,
+  };
+}
+
 export function sumAllocated(record: Record<string, number>): number {
   return Object.values(record).reduce((a, b) => a + b, 0);
 }
@@ -175,6 +194,7 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
   const weapons = weaponsFor(draft);
   const gender = draft.gender === "male" ? "Чоловіча" : "Жіноча";
   const luck = computeLuck(chars, occ);
+  const wealth = computeWealth(creditRating(draft.occupationId));
 
   const allSkillNames = new Set<string>([
     ...Object.keys(draft.occupationSkillPoints).filter((k) => draft.occupationSkillPoints[k] > 0),
@@ -216,6 +236,11 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
     `  Будова: ${build.build}`,
     `  Бонусні пошкодження: ${build.damageBonus}`,
     `  Достаток: ${creditRating(draft.occupationId)}%`,
+    "",
+    "БАГАТСТВО",
+    `  У кишені: ${wealth.cash}`,
+    `  Заощадження: ${wealth.savings}`,
+    `  Активи: ${wealth.assets}`,
     "",
     "УМІННЯ",
     ...(skillLines.length ? skillLines : ["  (не розподілено)"]),

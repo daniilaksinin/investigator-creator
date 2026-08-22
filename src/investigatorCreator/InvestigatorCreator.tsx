@@ -36,6 +36,7 @@ import {
   MAX_SANITY_AT_CREATION,
   creditRating,
   computeLuck,
+  computeWealth,
   weaponsFor,
   occupationDisplayName,
   buildSummaryText,
@@ -500,6 +501,7 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
   const weapons = weaponsFor(draft);
   const genderLabel = draft.gender === "male" ? "Чоловіча" : "Жіноча";
   const luck = computeLuck(chars, occ);
+  const wealth = computeWealth(creditRating(draft.occupationId));
 
   const allocatedSkills = Array.from(
     new Set([
@@ -530,6 +532,9 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
           <span>Будова: <b>{build.build}</b></span>
           <span>Бонусні пошкодження: <b>{build.damageBonus}</b></span>
           <span>Достаток: <b>{creditRating(draft.occupationId)}%</b></span>
+          <span>У кишені: <b>{wealth.cash}</b></span>
+          <span>Заощадження: <b>{wealth.savings}</b></span>
+          <span>Активи: <b>{wealth.assets}</b></span>
         </div>
       </div>
 
