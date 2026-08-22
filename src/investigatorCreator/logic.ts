@@ -116,6 +116,7 @@ const CREDIT_RATING_TIERS: Record<string, number> = {
   nurse: 20, actor: 25, musician: 20, student: 10, "police-detective": 25,
   "beat-cop": 15, driver: 15, sailor: 15, farmer: 15, hunter: 15, veteran: 20,
   boxer: 15, butler: 15, priest: 25, performer: 15, gangster: 35, other: 20,
+  medium: 20, smuggler: 25, aviator: 30, undertaker: 15, anthropologist: 30, "radio-operator": 20,
 };
 
 export function creditRating(occupationId: string): number {
