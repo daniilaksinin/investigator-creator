@@ -1,0 +1,74 @@
+:root {
+  /* Fonts */
+  --font-display: "Philosopher", "Georgia", serif;
+  --font-body: "Mulish", "Segoe UI", sans-serif;
+
+  /* Backgrounds */
+  --color-bg: #0b0e0d;
+  --color-bg-secondary: #121615;
+  --color-surface: #1a201e;
+  --color-surface-hover: #212927;
+
+  /* Borders */
+  --color-border: #2a3230;
+  --color-border-strong: #3d4a46;
+
+  /* Text */
+  --color-text-primary: #e9e4d3;
+  --color-text-secondary: #a8b0ab;
+  --color-text-muted: #6b7570;
+
+  /* Accents */
+  --color-accent: #4b7a6b;
+  --color-accent-hover: #5f9484;
+  --color-accent-muted: #35564b;
+
+  --color-gold: #a9863f;
+  --color-gold-hover: #c9a463;
+
+  --color-danger: #7a2d2d;
+  --color-danger-hover: #963a3a;
+
+  --color-success: #2d6b3f;
+  --color-success-hover: #3d9457;
+
+  /* Plot avatar palette (assigned to plots without a cover image) */
+  --color-plot-1: #4b7a6b;
+  --color-plot-2: #a9863f;
+  --color-plot-3: #7a2d2d;
+  --color-plot-4: #4a5d8a;
+  --color-plot-5: #6b4a8a;
+  --color-plot-6: #8a6b2d;
+  --color-plot-7: #2d6b7a;
+  --color-plot-8: #7a4a5d;
+
+  /* Shadows / glow */
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --glow-accent: 0 0 24px rgba(75, 122, 107, 0.35);
+}
+
+/* Scrollbars, themed to match the rest of the app */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 8px;
+  border: 2px solid var(--color-bg);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-accent);
+}
