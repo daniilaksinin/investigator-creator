@@ -65,6 +65,7 @@ function randomOf<T>(list: T[]): T {
 function InvestigatorCreator() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<InvestigatorDraft>(() => createEmptyDraft());
+  const [activeSkill, setActiveSkill] = useState(SPOT_HIDDEN);
 
   const occ = useMemo(() => getOccupation(draft.occupationId), [draft.occupationId]);
   const occSkills = useMemo(
@@ -361,6 +362,16 @@ function InvestigatorCreator() {
               <div className="investigator-creator__panel">
                 <h3 className="investigator-creator__step-title">Уміння</h3>
 
+                <div className="investigator-creator__skill-description">
+                  <span className="investigator-creator__skill-icon investigator-creator__skill-icon--lg">
+                    {skillIcon(activeSkill)}
+                  </span>
+                  <div>
+                    <strong>{activeSkill}</strong>
+                    <p>{skillDescription(activeSkill) || "Опис недоступний."}</p>
+                  </div>
+                </div>
+
                 <div className="investigator-creator__pool-header">
                   <span className="investigator-creator__skill-group-title">Очки професії ({occ.name})</span>
                   <span className={`investigator-creator__pool-badge ${occUsed === occPool ? "investigator-creator__pool-badge--done" : ""}`}>
@@ -375,6 +386,7 @@ function InvestigatorCreator() {
                       value={draft.occupationSkillPoints[name] ?? 0}
                       onInc={() => adjustOccSkill(name, SKILL_STEP)}
                       onDec={() => adjustOccSkill(name, -SKILL_STEP)}
+                      onHover={() => setActiveSkill(name)}
                       occupationPoints={draft.occupationSkillPoints}
                       personalPoints={draft.personalSkillPoints}
                     />
@@ -395,6 +407,7 @@ function InvestigatorCreator() {
                       value={draft.personalSkillPoints[s.name] ?? 0}
                       onInc={() => adjustPersonalSkill(s.name, SKILL_STEP)}
                       onDec={() => adjustPersonalSkill(s.name, -SKILL_STEP)}
+                      onHover={() => setActiveSkill(s.name)}
                       occupationPoints={draft.occupationSkillPoints}
                       personalPoints={draft.personalSkillPoints}
                     />
@@ -464,15 +477,15 @@ interface SkillRowProps {
   value: number;
   onInc: () => void;
   onDec: () => void;
+  onHover: () => void;
   occupationPoints: Record<string, number>;
   personalPoints: Record<string, number>;
 }
 
-function SkillRow({ name, value, onInc, onDec, occupationPoints, personalPoints }: SkillRowProps) {
+function SkillRow({ name, value, onInc, onDec, onHover, occupationPoints, personalPoints }: SkillRowProps) {
   const final = skillFinalValue(name, occupationPoints, personalPoints);
-  const desc = skillDescription(name);
   return (
-    <div className="investigator-creator__skill-row" title={desc || undefined}>
+    <div className="investigator-creator__skill-row" onMouseEnter={onHover}>
       <span className="investigator-creator__skill-icon">{skillIcon(name)}</span>
       <span className="investigator-creator__skill-name">{name}</span>
       <span className="investigator-creator__skill-final">{final}%</span>

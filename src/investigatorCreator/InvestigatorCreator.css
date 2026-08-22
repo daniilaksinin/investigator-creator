@@ -7,6 +7,14 @@
   min-height: 0;
 }
 
+.investigator-creator__occupation-icon,
+.investigator-creator__skill-icon,
+.investigator-creator__gear-icon,
+.investigator-creator__stat-icon,
+.investigator-creator__transfer-note-icon {
+  font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif;
+}
+
 .investigator-creator__progress {
   display: flex;
   gap: 0.4rem;
@@ -357,6 +365,33 @@
   font-size: 0.95rem;
   line-height: 1;
   flex-shrink: 0;
+}
+
+.investigator-creator__skill-icon--lg {
+  font-size: 1.8rem;
+}
+
+.investigator-creator__skill-description {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.investigator-creator__skill-description strong {
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.investigator-creator__skill-description p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
 }
 
 .investigator-creator__skill-name {
