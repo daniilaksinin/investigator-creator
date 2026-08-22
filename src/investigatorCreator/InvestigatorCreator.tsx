@@ -596,10 +596,17 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
       <button type="button" className="investigator-creator__download-btn" onClick={onDownload}>
         ⬇ Завантажити лист персонажа
       </button>
-      <p className="investigator-creator__hint">
-        Файл містить усі згенеровані дані у зручному текстовому вигляді — перенесіть їх власноруч на офіційний лист
-        дослідника (розділ "Створення" → "Лист дослідника"), а поля "Моя історія" й "Передісторія" допишіть самі.
-      </p>
+      <div className="investigator-creator__transfer-note">
+        <span className="investigator-creator__transfer-note-icon">✒️</span>
+        <div>
+          <strong>Персонажа створено! Перенесіть ці дані собі в лист.</strong>
+          <p>
+            Файл містить усі згенеровані дані у зручному текстовому вигляді — перепишіть їх власноруч на офіційний
+            лист дослідника (розділ "Створення" → "Лист дослідника"), а поля "Моя історія" й "Передісторія"
+            допишіть самі.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
