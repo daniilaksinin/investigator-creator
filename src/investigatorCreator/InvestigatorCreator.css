@@ -349,6 +349,20 @@
   padding-right: 0.3rem;
 }
 
+.investigator-creator__language-input {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.investigator-creator__language-input label {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
 .investigator-creator__skill-row {
   display: flex;
   align-items: center;
@@ -414,6 +428,11 @@
   font-size: 0.82rem;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.investigator-creator__hint--warning {
+  color: var(--color-danger-hover);
+  margin-top: 0.4rem;
 }
 
 .investigator-creator__fixed-gear {

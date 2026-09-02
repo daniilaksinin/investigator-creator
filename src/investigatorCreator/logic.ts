@@ -172,6 +172,14 @@ export function computeWealth(cr: number): Wealth {
   };
 }
 
+/** Appends the player-specified language to the "Мова (іноземна)" skill label, if any. */
+export function skillDisplayName(name: string, draft: InvestigatorDraft): string {
+  if (name === "Мова (іноземна)" && draft.foreignLanguage.trim()) {
+    return `${name}: ${draft.foreignLanguage.trim()}`;
+  }
+  return name;
+}
+
 export function sumAllocated(record: Record<string, number>): number {
   return Object.values(record).reduce((a, b) => a + b, 0);
 }
@@ -206,6 +214,7 @@ export function createEmptyDraft(): InvestigatorDraft {
     characteristics: defaultCharacteristics(),
     creditRating: defaultCreditRating(OCCUPATIONS[0].id),
     luckVariance: rollLuckVariance(),
+    foreignLanguage: "",
     occupationSkillPoints: {},
     personalSkillPoints: {},
     extraGear: [],
@@ -236,7 +245,7 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
     .map((name) => {
       const value = skillFinalValue(name, draft.occupationSkillPoints, draft.personalSkillPoints);
       const lvl = successLevels(value);
-      return `  ${name}: ${lvl.regular}% (Складно: ${lvl.hard}%, Екстремально: ${lvl.extreme}%)`;
+      return `  ${skillDisplayName(name, draft)}: ${lvl.regular}% (Складно: ${lvl.hard}%, Екстремально: ${lvl.extreme}%)`;
     });
 
   const lines = [

@@ -12,6 +12,7 @@ import {
   skillIcon,
   skillDescription,
   gearIcon,
+  baseSkillValue,
 } from "./data";
 import {
   CHAR_ORDER,
@@ -42,12 +43,14 @@ import {
   computeWealth,
   weaponsFor,
   occupationDisplayName,
+  skillDisplayName,
   buildSummaryText,
 } from "./logic";
 import "./InvestigatorCreator.css";
 
 const SKILL_STEP = 5;
 const SPOT_HIDDEN = "Пошук прихованого";
+const FOREIGN_LANGUAGE = "Мова (іноземна)";
 
 const STEPS = [
   "Стать",
@@ -131,7 +134,7 @@ function InvestigatorCreator() {
       if (next < 0) return prev;
       const pool = occupationSkillPointPool(prev.characteristics, getOccupation(prev.occupationId));
       if (delta > 0 && sumAllocated(prev.occupationSkillPoints) + delta > pool) return prev;
-      const base = SKILL_LIST.find((s) => s.name === name)?.base ?? 0;
+      const base = baseSkillValue(name);
       if (base + next > 90) return prev;
       return { ...prev, occupationSkillPoints: { ...prev.occupationSkillPoints, [name]: next } };
     });
@@ -144,7 +147,7 @@ function InvestigatorCreator() {
       if (next < 0) return prev;
       const pool = personalSkillPointPool(prev.characteristics);
       if (delta > 0 && sumAllocated(prev.personalSkillPoints) + delta > pool) return prev;
-      const base = SKILL_LIST.find((s) => s.name === name)?.base ?? 0;
+      const base = baseSkillValue(name);
       const occAlready = prev.occupationSkillPoints[name] ?? 0;
       if (base + occAlready + next > 90) return prev;
       return { ...prev, personalSkillPoints: { ...prev.personalSkillPoints, [name]: next } };
@@ -170,6 +173,10 @@ function InvestigatorCreator() {
         return occ.id !== "other" || draft.customOccupation.trim().length > 0;
       case 5:
         return charsRemaining === 0;
+      case 6: {
+        const languagePoints = (draft.occupationSkillPoints[FOREIGN_LANGUAGE] ?? 0) + (draft.personalSkillPoints[FOREIGN_LANGUAGE] ?? 0);
+        return languagePoints === 0 || draft.foreignLanguage.trim().length > 0;
+      }
       default:
         return true;
     }
@@ -431,6 +438,15 @@ function InvestigatorCreator() {
                   </span>
                 </div>
                 <div className="investigator-creator__skill-list investigator-creator__skill-list--scroll">
+                  <SkillRow
+                    name={FOREIGN_LANGUAGE}
+                    value={draft.personalSkillPoints[FOREIGN_LANGUAGE] ?? 0}
+                    onInc={() => adjustPersonalSkill(FOREIGN_LANGUAGE, SKILL_STEP)}
+                    onDec={() => adjustPersonalSkill(FOREIGN_LANGUAGE, -SKILL_STEP)}
+                    onHover={() => setActiveSkill(FOREIGN_LANGUAGE)}
+                    occupationPoints={draft.occupationSkillPoints}
+                    personalPoints={draft.personalSkillPoints}
+                  />
                   {SKILL_LIST.map((s) => (
                     <SkillRow
                       key={s.name}
@@ -444,6 +460,25 @@ function InvestigatorCreator() {
                     />
                   ))}
                 </div>
+
+                {(draft.occupationSkillPoints[FOREIGN_LANGUAGE] ?? 0) + (draft.personalSkillPoints[FOREIGN_LANGUAGE] ?? 0) > 0 && (
+                  <div className="investigator-creator__language-input">
+                    <label htmlFor="foreign-language">🌐 Яка саме мова?</label>
+                    <input
+                      id="foreign-language"
+                      className="investigator-creator__input"
+                      placeholder="Наприклад, Французька"
+                      value={draft.foreignLanguage}
+                      onChange={(e) => update({ foreignLanguage: e.target.value })}
+                    />
+                  </div>
+                )}
+                {(draft.occupationSkillPoints[FOREIGN_LANGUAGE] ?? 0) + (draft.personalSkillPoints[FOREIGN_LANGUAGE] ?? 0) > 0 &&
+                  !draft.foreignLanguage.trim() && (
+                    <p className="investigator-creator__hint investigator-creator__hint--warning">
+                      Вкажи, яку саме мову знає персонаж, щоб перейти далі.
+                    </p>
+                  )}
               </div>
             )}
 
@@ -613,7 +648,7 @@ function ResultPanel({ draft, onDownload, onRerollLuck }: ResultPanelProps) {
             return (
               <div key={name} className="investigator-creator__stat-row">
                 <span className="investigator-creator__stat-icon">{skillIcon(name)}</span>
-                <span className="investigator-creator__stat-name">{name}</span>
+                <span className="investigator-creator__stat-name">{skillDisplayName(name, draft)}</span>
                 <span className="investigator-creator__stat-values">
                   <b>{lvl.regular}%</b>
                   <span>{lvl.hard}% / {lvl.extreme}%</span>
