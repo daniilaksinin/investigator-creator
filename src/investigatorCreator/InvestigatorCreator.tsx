@@ -17,6 +17,8 @@ import {
 import {
   CHAR_ORDER,
   CHAR_FULL_NAMES,
+  CHAR_ICON,
+  CHAR_DESCRIPTIONS,
   CHAR_BOUNDS,
   CHAR_STEP,
   CHAR_POOL_TOTAL,
@@ -72,6 +74,7 @@ function InvestigatorCreator() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<InvestigatorDraft>(() => createEmptyDraft());
   const [activeSkill, setActiveSkill] = useState(SPOT_HIDDEN);
+  const [activeChar, setActiveChar] = useState<(typeof CHAR_ORDER)[number]>(CHAR_ORDER[0]);
 
   const occ = useMemo(() => getOccupation(draft.occupationId), [draft.occupationId]);
   const occSkills = useMemo(
@@ -375,9 +378,20 @@ function InvestigatorCreator() {
                     Залишилось очок: {charsRemaining} / {CHAR_POOL_TOTAL} (використано {charsUsed})
                   </span>
                 </div>
+                <div className="investigator-creator__skill-description">
+                  <span className="investigator-creator__skill-icon investigator-creator__skill-icon--lg">
+                    {CHAR_ICON[activeChar]}
+                  </span>
+                  <div>
+                    <strong>
+                      {activeChar} ({CHAR_FULL_NAMES[activeChar]})
+                    </strong>
+                    <p>{CHAR_DESCRIPTIONS[activeChar]}</p>
+                  </div>
+                </div>
                 <div className="investigator-creator__char-grid">
                   {CHAR_ORDER.map((key) => (
-                    <div key={key} className="investigator-creator__char-row">
+                    <div key={key} className="investigator-creator__char-row" onMouseEnter={() => setActiveChar(key)}>
                       <span className="investigator-creator__char-label">
                         {key} <span className="investigator-creator__char-fullname">({CHAR_FULL_NAMES[key]})</span>
                       </span>
