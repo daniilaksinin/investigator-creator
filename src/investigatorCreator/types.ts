@@ -61,6 +61,8 @@ export interface InvestigatorDraft {
   occupationId: string;
   customOccupation: string;
   characteristics: Characteristics;
+  creditRating: number;
+  luckVariance: number;
   occupationSkillPoints: Record<string, number>;
   personalSkillPoints: Record<string, number>;
   extraGear: string[];

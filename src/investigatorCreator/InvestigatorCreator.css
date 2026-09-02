@@ -549,6 +549,14 @@
   color: var(--color-text-primary);
 }
 
+.investigator-creator__reroll-btn {
+  border: none;
+  background: none;
+  color: var(--color-accent-hover);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
 .investigator-creator__hint--spaced {
   margin-top: 0.5rem;
 }

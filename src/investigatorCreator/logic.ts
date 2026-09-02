@@ -42,14 +42,23 @@ export function remainingCharPoints(chars: Characteristics): number {
   return CHAR_POOL_TOTAL - usedCharPoints(chars);
 }
 
+function rollDie(sides: number): number {
+  return 1 + Math.floor(Math.random() * sides);
+}
+
+/** Triangular ±15 spread around 0, in steps of 5 — a small dice-driven "fortune" factor. */
+export function rollLuckVariance(): number {
+  return (rollDie(4) - rollDie(4)) * 5;
+}
+
 /**
  * Талан is derived from Волю (the classic 7e Luck-equals-POW rule) with a bonus
- * for occupations whose secondary skill-point stat is Воля, reflecting an
- * occupation-driven force of will/fortune rather than a pure dice roll.
+ * for occupations whose secondary skill-point stat is Воля, plus a small random
+ * variance so two characters of the same occupation aren't identically "lucky".
  */
-export function computeLuck(chars: Characteristics, occ: Occupation): number {
+export function computeLuck(chars: Characteristics, occ: Occupation, variance: number): number {
   const bonus = occ.secondaryStat === "ВОЛ" ? 10 : 0;
-  return Math.min(99, chars.ВОЛ + bonus);
+  return Math.max(5, Math.min(99, chars.ВОЛ + bonus + variance));
 }
 
 export function successLevels(value: number): SuccessLevels {
@@ -110,7 +119,9 @@ export function personalSkillPointPool(chars: Characteristics): number {
   return chars.ІНТ * 2;
 }
 
-const CREDIT_RATING_TIERS: Record<string, number> = {
+// Typical/default Достаток per occupation — also the center of that
+// occupation's selectable range (base ± 15, clamped to 5..90).
+const CREDIT_RATING_BASE: Record<string, number> = {
   antiquarian: 40, lawyer: 45, physician: 50, architect: 40, scholar: 30,
   journalist: 20, "private-investigator": 20, accountant: 30, librarian: 20,
   nurse: 20, actor: 25, musician: 20, student: 10, "police-detective": 25,
@@ -120,8 +131,26 @@ const CREDIT_RATING_TIERS: Record<string, number> = {
   "snake-oil-salesman": 20, "oddity-collector": 20, executioner: 15,
 };
 
-export function creditRating(occupationId: string): number {
-  return CREDIT_RATING_TIERS[occupationId] ?? 20;
+export interface CreditRatingRange {
+  min: number;
+  max: number;
+}
+
+/** Player-adjustable Достаток range for an occupation, centered on its typical value. */
+export function creditRatingRange(occupationId: string): CreditRatingRange {
+  const base = CREDIT_RATING_BASE[occupationId] ?? 20;
+  return { min: Math.max(5, base - 15), max: Math.min(90, base + 15) };
+}
+
+export function defaultCreditRating(occupationId: string): number {
+  return CREDIT_RATING_BASE[occupationId] ?? 20;
+}
+
+export function wealthLevel(cr: number): string {
+  if (cr < 10) return "Бідність";
+  if (cr < 50) return "Скромно";
+  if (cr < 90) return "Заможно";
+  return "Багатство";
 }
 
 export interface Wealth {
@@ -175,6 +204,8 @@ export function createEmptyDraft(): InvestigatorDraft {
     occupationId: OCCUPATIONS[0].id,
     customOccupation: "",
     characteristics: defaultCharacteristics(),
+    creditRating: defaultCreditRating(OCCUPATIONS[0].id),
+    luckVariance: rollLuckVariance(),
     occupationSkillPoints: {},
     personalSkillPoints: {},
     extraGear: [],
@@ -193,8 +224,8 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
   const build = computeBuild(chars);
   const weapons = weaponsFor(draft);
   const gender = draft.gender === "male" ? "Чоловіча" : "Жіноча";
-  const luck = computeLuck(chars, occ);
-  const wealth = computeWealth(creditRating(draft.occupationId));
+  const luck = computeLuck(chars, occ, draft.luckVariance);
+  const wealth = computeWealth(draft.creditRating);
 
   const allSkillNames = new Set<string>([
     ...Object.keys(draft.occupationSkillPoints).filter((k) => draft.occupationSkillPoints[k] > 0),
@@ -235,7 +266,7 @@ export function buildSummaryText(draft: InvestigatorDraft): string {
     `  Переміщення: ${computeMove(chars)}`,
     `  Будова: ${build.build}`,
     `  Бонусні пошкодження: ${build.damageBonus}`,
-    `  Достаток: ${creditRating(draft.occupationId)}%`,
+    `  Достаток: ${draft.creditRating}% (${wealthLevel(draft.creditRating)})`,
     "",
     "УМІННЯ",
     ...(skillLines.length ? skillLines : ["  (не розподілено)"]),

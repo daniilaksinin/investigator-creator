@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Gender, InvestigatorDraft } from "./types";
 import {
@@ -34,8 +34,11 @@ import {
   computeBuild,
   computeStartingSanity,
   MAX_SANITY_AT_CREATION,
-  creditRating,
+  creditRatingRange,
+  defaultCreditRating,
+  wealthLevel,
   computeLuck,
+  rollLuckVariance,
   computeWealth,
   weaponsFor,
   occupationDisplayName,
@@ -72,6 +75,15 @@ function InvestigatorCreator() {
     () => (occ.skills.includes(SPOT_HIDDEN) ? occ.skills : [...occ.skills, SPOT_HIDDEN]),
     [occ]
   );
+  const crRange = useMemo(() => creditRatingRange(occ.id), [occ]);
+
+  useEffect(() => {
+    setDraft((prev) => {
+      const range = creditRatingRange(prev.occupationId);
+      if (prev.creditRating >= range.min && prev.creditRating <= range.max) return prev;
+      return { ...prev, creditRating: defaultCreditRating(prev.occupationId) };
+    });
+  }, [draft.occupationId]);
   const charsUsed = usedCharPoints(draft.characteristics);
   const charsRemaining = remainingCharPoints(draft.characteristics);
   const occPool = occupationSkillPointPool(draft.characteristics, occ);
@@ -326,6 +338,25 @@ function InvestigatorCreator() {
                     onChange={(e) => update({ customOccupation: e.target.value })}
                   />
                 )}
+
+                <div className="investigator-creator__pool-header">
+                  <span className="investigator-creator__skill-group-title">
+                    Достаток: {draft.creditRating}% ({wealthLevel(draft.creditRating)})
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={crRange.min}
+                  max={crRange.max}
+                  step={5}
+                  value={draft.creditRating}
+                  onChange={(e) => update({ creditRating: Number(e.target.value) })}
+                  className="investigator-creator__slider"
+                />
+                <p className="investigator-creator__hint">
+                  Діапазон {crRange.min}-{crRange.max}% типовий для цього роду занять — обери, наскільки заможний
+                  саме твій персонаж.
+                </p>
               </div>
             )}
 
@@ -450,7 +481,9 @@ function InvestigatorCreator() {
               </div>
             )}
 
-            {step === 8 && <ResultPanel draft={draft} onDownload={handleDownload} />}
+            {step === 8 && (
+              <ResultPanel draft={draft} onDownload={handleDownload} onRerollLuck={() => update({ luckVariance: rollLuckVariance() })} />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -505,16 +538,17 @@ function SkillRow({ name, value, onInc, onDec, onHover, occupationPoints, person
 interface ResultPanelProps {
   draft: InvestigatorDraft;
   onDownload: () => void;
+  onRerollLuck: () => void;
 }
 
-function ResultPanel({ draft, onDownload }: ResultPanelProps) {
+function ResultPanel({ draft, onDownload, onRerollLuck }: ResultPanelProps) {
   const chars = draft.characteristics;
   const occ = getOccupation(draft.occupationId);
   const build = computeBuild(chars);
   const weapons = weaponsFor(draft);
   const genderLabel = draft.gender === "male" ? "Чоловіча" : "Жіноча";
-  const luck = computeLuck(chars, occ);
-  const wealth = computeWealth(creditRating(draft.occupationId));
+  const luck = computeLuck(chars, occ, draft.luckVariance);
+  const wealth = computeWealth(draft.creditRating);
 
   const allocatedSkills = Array.from(
     new Set([
@@ -539,12 +573,19 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
           <span>
             Глузд: <b>{computeStartingSanity(chars)}</b> / Макс {MAX_SANITY_AT_CREATION}
           </span>
-          <span>Талан: <b>{luck}</b></span>
+          <span>
+            Талан: <b>{luck}</b>{" "}
+            <button type="button" className="investigator-creator__reroll-btn" onClick={onRerollLuck} title="Перекинути фактор удачі">
+              ⟳
+            </button>
+          </span>
           <span>Ухиляння: <b>{computeDodge(chars)}%</b></span>
           <span>Переміщення: <b>{computeMove(chars)}</b></span>
           <span>Будова: <b>{build.build}</b></span>
           <span>Бонусні пошкодження: <b>{build.damageBonus}</b></span>
-          <span>Достаток: <b>{creditRating(draft.occupationId)}%</b></span>
+          <span>
+            Достаток: <b>{draft.creditRating}%</b> ({wealthLevel(draft.creditRating)})
+          </span>
         </div>
       </div>
 
@@ -609,7 +650,7 @@ function ResultPanel({ draft, onDownload }: ResultPanelProps) {
       </div>
 
       <div className="investigator-creator__result-block">
-        <h4>Багатство</h4>
+        <h4>Багатство ({wealthLevel(draft.creditRating)})</h4>
         <div className="investigator-creator__result-chars">
           <span>У кишені: <b>{wealth.cash}</b></span>
           <span>Заощадження: <b>{wealth.savings}</b></span>
